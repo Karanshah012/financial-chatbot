@@ -1,0 +1,35 @@
+[
+  {
+    "username": "karan",
+    "password": "1234",
+    "user_id": "1001",
+    "name": "Karan Shah",
+    "account_type": "Savings",
+    "balance": "₹85,000",
+    "bank": "HDFC Bank",
+    "branch": "Ahmedabad Main Branch",
+    "ifsc_code": "HDFC0000123"
+  },
+  {
+    "username": "priya",
+    "password": "5678",
+    "user_id": "1002",
+    "name": "Priya Mehta",
+    "account_type": "Current",
+    "balance": "₹1,25,500",
+    "bank": "ICICI Bank",
+    "branch": "Mumbai Central Branch",
+    "ifsc_code": "ICIC0000456"
+  },
+  {
+    "username": "rahul",
+    "password": "abcd",
+    "user_id": "1003",
+    "name": "Rahul Desai",
+    "account_type": "Savings",
+    "balance": "₹72,000",
+    "bank": "Axis Bank",
+    "branch": "Delhi South Branch",
+    "ifsc_code": "UTIB0000789"
+  }
+]

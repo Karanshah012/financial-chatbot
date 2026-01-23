@@ -1,0 +1,3 @@
+account_number,username,balance,last_transaction,ifsc,branch,bank_name
+1001,Karan Shah,25000,"Debit ₹1000 on 2025-10-04",HDFC0001234,"Mumbai Main","HDFC Bank"
+1002,Rohan Patel,47000,"Credit ₹5000 on 2025-10-05",HDFC0009876,"Pune Branch","HDFC Bank"

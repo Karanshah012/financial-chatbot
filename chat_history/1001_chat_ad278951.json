@@ -1,0 +1,50 @@
+[
+  {
+    "role": "user",
+    "content": "if I invest 10000 in a bank what would that be in 10 years ?"
+  },
+  {
+    "role": "bot",
+    "content": "\ud83d\udcc8 If you invest \u20b910,000 for 10 years at 7% annual return, it could grow to \u20b919,672."
+  },
+  {
+    "role": "user",
+    "content": "if I had a car loan of 6 lakhs at a 7% interest rate what is the EMI per month I will be getting ?"
+  },
+  {
+    "role": "bot",
+    "content": "\ud83d\udcc4 Your last transaction: Debit \u20b91000 on 2025-10-04."
+  },
+  {
+    "role": "user",
+    "content": "if I had a car loan of 6 lakhs at a 7% interest rate what is the EMI per month I will be getting ?"
+  },
+  {
+    "role": "bot",
+    "content": "\ud83d\udcc4 Your last transaction: Debit \u20b91000 on 2025-10-04."
+  },
+  {
+    "role": "user",
+    "content": "if 5 lac rupees is in my bank as a fixed deposit what is the amount after 7 years ?"
+  },
+  {
+    "role": "bot",
+    "content": "\ud83d\udca1 Please specify the amount, duration (in years), and interest rate for accurate FD maturity prediction."
+  },
+  {
+    "role": "user",
+    "content": "500000 rupees for 7 years at 7% interest rate "
+  },
+  {
+    "role": "bot",
+    "content": "\ud83d\udcb0 Your \u20b9500,000 will grow to approximately \u20b9802,891 after 7 years at 7.0% annual interest."
+  },
+  {
+    "role": "user",
+    "content": "what is ifsc code of my bank ?"
+  },
+  {
+    "role": "bot",
+    "content": "A set of financial questions! I'm happy to help.\n\n**What is the minimum balance?**\n\nAccording to the context, the minimum balance required for regular savings accounts is \u20b95000. However, please note that this might not be applicable to all types of bank accounts or special schemes offered by the bank. To confirm, it's always best to check with your branch as the context suggests.\n\n**How to open a new bank account?**\n\nTo open a new bank account, follow these steps:\n\n1. Gather valid KYC documents (ID proof and address proof).\n2. Visit your nearest branch of the bank.\n3. Fill out the application form with the help of the bank's staff.\n4. Submit the completed application form along with the required documents.\n\n**What is a credit card?**\n\nA credit card is a type of payment card that allows you to borrow money from the issuer (bank) to make purchases, pay bills, or get cash advances. When you use a credit card, you're essentially using someone else's money (the bank's), and you need to repay it with interest.\n\nHere's how it works:\n\n1. You apply for a credit card and receive an approval.\n2. The credit limit is set based on your creditworthiness, income, and other factors.\n3. You use the credit card to make purchases or get cash advances.\n4. You need to pay back the outstanding amount with interest (if applicable).\n5. Paying off the debt on time helps maintain a good credit score.\n\n**What is an IFSC code of my bank?**\n\nAn Indian Financial System Code (IFSC) is a unique 11-character alphanumeric code that identifies a bank branch in India. To find the IFSC code of your bank, you can follow these steps:\n\n1. Check the bank's website or mobile banking app for the IFSC code.\n2. Look for the code on your bank account statement or passbook.\n3. Visit your nearest bank branch and ask the staff to provide the IFSC code.\n\nThe IFSC code is usually in the following format: XXXXXXXXXX (11 characters).\n\nPlease note that IFSC codes are unique to each bank branch, so you may need to find the code for a specific branch if you have multiple branches of the same bank."
+  }
+]

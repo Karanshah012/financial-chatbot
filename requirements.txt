@@ -1,0 +1,10 @@
+streamlit
+langchain>=0.0.250
+langchain-ollama
+ollama
+faiss-cpu
+pandas
+numpy
+scikit-learn
+sentence-transformers
+python-dotenv
