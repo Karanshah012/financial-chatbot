@@ -1,25 +1,19 @@
 # chatbot_logic.py
 import os
 import pandas as pd
-from langchain.chains import LLMChain
-from langchain.prompts import PromptTemplate
 from langchain_ollama.chat_models import ChatOllama
 from langchain.vectorstores import FAISS
-from langchain.memory import ConversationBufferMemory
 from admin_backend import ensure_vector_store_available, get_embeddings
 from predictive_analysis import parse_financial_query
 
-
-# Ollama model (Llama 3 recommended)
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3")
 
 
+# ---------------- INIT ----------------
 def init_chatbot():
-    """Initialize the Ollama LLM + FAISS retriever + memory."""
     ensure_vector_store_available()
     embeddings = get_embeddings()
 
-    # Load vector DB
     vector_db = FAISS.load_local(
         "vector_store/faiss_index",
         embeddings,
@@ -27,86 +21,142 @@ def init_chatbot():
     )
 
     llm = ChatOllama(model=OLLAMA_MODEL)
-    memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 
     return {
         "llm": llm,
-        "retriever": vector_db.as_retriever(),
-        "memory": memory
+        "vector_db": vector_db
     }
 
 
-# --------------------- USER DATA FETCH ---------------------
+# ---------------- USER DATA ----------------
 def get_user_data(account_number):
-    """Fetch user info from CSV file."""
     df = pd.read_csv("data/users.csv", dtype=str)
     match = df[df["account_number"] == str(account_number)]
     return match.iloc[0].to_dict() if not match.empty else None
 
 
-# --------------------- MAIN CHAT LOGIC ---------------------
+# ---------------- MAIN CHAT ----------------
 def chat_with_bot(user_message, chatbot, session):
     llm = chatbot["llm"]
-    retriever = chatbot["retriever"]
+    vector_db = chatbot["vector_db"]
 
-    text = user_message.strip()
+    text = user_message.strip().lower()
 
-    # 1️⃣ If awaiting account number
+    # =========================================================
+    # 🔐 ACCOUNT VALIDATION
+    # =========================================================
     if session.get("awaiting_account", False):
-        acct = text.strip()
-        session["account_number"] = acct
-        session["awaiting_account"] = False
-        return "✅ Got your account number. Now you can ask about balance, transactions, or predictions."
+        user_data = get_user_data(text)
 
-    # 2️⃣ Retrieve user data if exists
+        if not user_data:
+            return "❌ Invalid account number. Please enter a valid account number."
+
+        session["account_number"] = text
+        session["awaiting_account"] = False
+        return "✅ Account verified successfully. You can now ask about your account."
+
     user_data = get_user_data(session.get("account_number")) if session.get("account_number") else None
 
-    # 3️⃣ AI decides INTENT dynamically
-    intent_prompt = PromptTemplate(
-        input_variables=["message"],
-        template=(
-            "You are an AI financial intent classifier.\n"
-            "Given the user's message, decide the most likely intent from this list:\n"
-            "[balance_check, transaction_query, fd_prediction, investment_prediction, spending_prediction, general_bank_query, unknown]\n"
-            "Return only one word from the list.\n\nUser message: {message}"
+    # =========================================================
+    # 🧠 1. PREDICTION (HIGHEST PRIORITY)
+    # =========================================================
+    prediction_keywords = ["predict", "future", "next", "forecast", "estimate"]
+
+    if any(word in text for word in prediction_keywords):
+        prediction = parse_financial_query(text)
+
+        if prediction:
+            return prediction
+        else:
+            return "📊 Please provide more details like amount, duration, or rate for accurate prediction."
+
+    # =========================================================
+    # 📊 2. INVESTMENT ADVISOR
+    # =========================================================
+    if "invest" in text or "investment" in text:
+        return (
+            "📊 **Recommended Investment Options:**\n\n"
+            "• Fixed Deposits – Safe and stable returns\n"
+            "• Mutual Funds / SIP – Long-term wealth creation\n"
+            "• PPF – Tax-saving with guaranteed returns\n"
+            "• Stocks – High return (with risk)\n"
+            "• Gold – Safe hedge against inflation\n\n"
+            "👉 Suggestion: Diversify your portfolio based on your risk appetite and goals."
         )
-    )
-    intent_chain = LLMChain(llm=llm, prompt=intent_prompt)
-    intent = intent_chain.run(message=text).strip().lower()
 
-    # 4️⃣ Handle based on intent
-    if intent in ["fd_prediction", "investment_prediction", "spending_prediction"]:
-        ai_response = parse_financial_query(text)
-        if ai_response:
-            return ai_response
-
-    if intent == "balance_check":
+    # =========================================================
+    # 🔐 3. PERSONAL DATA (STRICT)
+    # =========================================================
+    if "balance" in text:
         if not user_data:
             session["awaiting_account"] = True
-            return "🔐 Please enter your account number to continue."
-        return f"💰 Your current balance is ₹{user_data.get('balance', 'N/A')}."
+            return "🔐 Please enter your account number to check your balance."
 
-    if intent == "transaction_query":
-        if not user_data:
-            session["awaiting_account"] = True
-            return "🔐 Please enter your account number to continue."
-        return f"📄 Your last transaction: {user_data.get('last_transaction', 'N/A')}."
+        return f"💰 Your current account balance is ₹{user_data.get('balance', 'N/A')}."
 
-    # 5️⃣ If intent is general or unknown → use AI reasoning with context
-    context_docs = retriever.get_relevant_documents(text)
-    context = "\n\n".join(d.page_content for d in context_docs[:3]) if context_docs else "No context found."
+    if "transaction" in text:
+        # IMPORTANT FIX: avoid conflict with prediction queries
+        if any(word in text for word in ["predict", "next", "future"]):
+            pass
+        else:
+            if not user_data:
+                session["awaiting_account"] = True
+                return "🔐 Please enter your account number to view transactions."
 
-    reasoning_prompt = PromptTemplate(
-        input_variables=["context", "question"],
-        template=(
-            "You are an intelligent financial assistant with advanced reasoning.\n"
-            "Use the following context and your own financial knowledge to answer clearly and logically.\n\n"
-            "Context:\n{context}\n\n"
-            "Question:\n{question}\n\n"
-            "Give step-by-step reasoning if needed (like calculations or comparisons)."
-        )
-    )
-    reasoning_chain = LLMChain(llm=llm, prompt=reasoning_prompt)
-    answer = reasoning_chain.run(context=context, question=text)
+            return f"📄 Your last transaction: {user_data.get('last_transaction', 'N/A')}."
 
-    return answer
+    # =========================================================
+    # 🧠 4. RAG (KNOWLEDGE BASE)
+    # =========================================================
+    retriever = vector_db.as_retriever(search_kwargs={"k": 5})
+    docs = retriever.get_relevant_documents(text)
+
+    context = "\n\n".join([doc.page_content for doc in docs]) if docs else ""
+
+    # =========================================================
+    # 🤖 SMART FALLBACK
+    # =========================================================
+    financial_keywords = [
+        "bank", "loan", "fd", "interest", "account",
+        "investment", "money", "credit", "debit", "emi"
+    ]
+
+    is_financial = any(word in text for word in financial_keywords)
+
+    if not context:
+        if is_financial:
+            return (
+                "⚠️ I don't have complete information on that topic.\n\n"
+                "📞 I can arrange a call with a banking advisor if you'd like.\n"
+                "Type YES to proceed."
+            )
+        else:
+            return (
+                "🤖 I'm designed to assist with banking and financial queries.\n\n"
+                "Please ask something related to banking, loans, investments, or your account."
+            )
+
+    # =========================================================
+    # 🧠 5. FINAL AI RESPONSE
+    # =========================================================
+    prompt = f"""
+You are a professional AI Banking Assistant.
+
+Your job is to:
+- Understand user intent clearly
+- Provide accurate and professional answers
+- Use the context if available
+- If context is partial, enhance with financial knowledge
+
+Context:
+{context}
+
+User Question:
+{text}
+
+Answer in a clear, structured, and professional way.
+"""
+
+    response = llm.invoke(prompt)
+
+    return response.content if hasattr(response, "content") else str(response)
